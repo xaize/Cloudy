@@ -1759,15 +1759,16 @@ local originalTransparencies = {}
 
 
 UI.MinBtn.MouseButton1Click:Connect(function()
-    if State.isAnimating then return end
+    if State.isAnimating then return end  -- Prevent spam
+    State.isAnimating = true  -- Set animating flag
     State.minimized = true
     State.savedMainPosition = UI.Main.Position
   
     if State.settingsOpen then
-    TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
-        Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
-        BackgroundTransparency = 1
-    }):Play()
+        TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
+            Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
+            BackgroundTransparency = 1
+        }):Play()
       
         for _, child in pairs(UI.SettingsPopup:GetDescendants()) do
             if child:IsA("GuiObject") or child:IsA("UIStroke") then
@@ -1792,6 +1793,7 @@ UI.MinBtn.MouseButton1Click:Connect(function()
             end
         end
     end
+    
     TweenService:Create(UI.Main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
         Size = UDim2.new(0, 680 * scaleFactor, 0, 0)
     }):Play()
@@ -1804,8 +1806,8 @@ UI.MinBtn.MouseButton1Click:Connect(function()
         UI.MinBar.Visible = true
         UI.MinBar.Size = UDim2.new(0, 0, 0, 38 * scaleFactor)
         TweenService:Create(UI.MinBar, Tweens.bounce, {Size = UDim2.new(0, (isMobile and 200 or 240) * scaleFactor, 0, 38 * scaleFactor)}):Play()
-        task.delay(0.5, function()  -- ADD THESE 3 LINES
-            State.isAnimating = false
+        task.delay(0.5, function()
+            State.isAnimating = false  -- Reset animation flag
         end)
     end)
 end)
