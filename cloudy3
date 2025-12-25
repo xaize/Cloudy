@@ -1762,9 +1762,9 @@ UI.MinBtn.MouseButton1Click:Connect(function()
   
     if State.settingsOpen then
         TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
-        Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
-        BackgroundTransparency = 1
-    }):Play()
+            Position = UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
+            BackgroundTransparency = 1
+        }):Play()
       
         for _, child in pairs(UI.SettingsPopup:GetDescendants()) do
             if child:IsA("GuiObject") or child:IsA("UIStroke") then
@@ -1921,10 +1921,10 @@ local function expandUI()
         
         if State.settingsOpen then
             UI.SettingsPopup.Visible = true
-            UI.SettingsPopup.Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
+            UI.SettingsPopup.Position = UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
             UI.SettingsPopup.BackgroundTransparency = 1
             TweenService:Create(UI.SettingsPopup, Tweens.bounce, {
-                Position = isMobile and UDim2.new(0, 430 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
+                Position = UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
                 BackgroundTransparency = 0
             }):Play()
             task.delay(0.1, function()
