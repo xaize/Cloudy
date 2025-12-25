@@ -2272,6 +2272,123 @@ end)
 -- MinBar setup
 -- MinBar setup
 -- MinBar setup
+if isMobile then
+    local touchStartPos = nil
+    local touchStartTime = 0
+    local minBarDragStart = nil
+    local minBarStartPos = nil
+    local pressEffectApplied = false
+    local rotationTween = nil  -- ADD THIS: Store the rotation tween so we can cancel it
+    
+    UI.MinBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            touchStartPos = input.Position
+            touchStartTime = tick()
+            isDragging = false
+            minBarDragStart = input.Position
+            minBarStartPos = UI.MinBar.Position
+            pressEffectApplied = true
+            
+            -- Visual press effect for mobile (only rotation)
+            rotationTween = TweenService:Create(UI.MinBar, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Rotation = 2
+            })
+            rotationTween:Play()
+        end
+    end)
+    
+    UI.MinBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and minBarDragStart then
+            local delta = (input.Position - touchStartPos).Magnitude
+            if delta > dragThreshold then
+                isDragging = true
+                
+                -- Cancel the rotation effect if we started dragging
+                if pressEffectApplied then
+                    pressEffectApplied = false
+                    
+                    -- IMPORTANT: Cancel the ongoing rotation tween first
+                    if rotationTween then
+                        rotationTween:Cancel()
+                        rotationTween = nil
+                    end
+                    
+                    -- Then immediately reset rotation
+                    UI.MinBar.Rotation = 0
+                end
+                
+                if not dragging then
+                    dragging = true
+                    dragStart = minBarDragStart
+                    startPos = minBarStartPos
+                end
+                
+                -- Move the MinBar while dragging
+                local moveDelta = input.Position - minBarDragStart
+                UI.MinBar.Position = UDim2.new(
+                    minBarStartPos.X.Scale, 
+                    minBarStartPos.X.Offset + moveDelta.X, 
+                    minBarStartPos.Y.Scale, 
+                    minBarStartPos.Y.Offset + moveDelta.Y
+                )
+            end
+        end
+    end)
+    
+    UI.MinBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            -- Only apply release effect if it was a tap (not a drag)
+            local touchDuration = tick() - touchStartTime
+            local wasTap = not isDragging and touchDuration < 0.3
+            
+            if wasTap then
+                -- Cancel any ongoing rotation tween
+                if rotationTween then
+                    rotationTween:Cancel()
+                    rotationTween = nil
+                end
+                
+                -- Release rotation for tap
+                rotationTween = TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Rotation = 0
+                })
+                rotationTween:Play()
+                
+                expandUI()
+            elseif isDragging then
+                -- Cancel any ongoing rotation tween
+                if rotationTween then
+                    rotationTween:Cancel()
+                    rotationTween = nil
+                end
+                -- Just reset without animation if it was a drag
+                UI.MinBar.Rotation = 0
+            end
+            
+            dragging = false
+            isDragging = false
+            touchStartPos = nil
+            minBarDragStart = nil
+            minBarStartPos = nil
+            pressEffectApplied = false
+        end
+    end)
+else
+    -- Desktop: entire MinBar is draggable
+    UI.MinBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = UI.MinBar.Position
+        end
+    end)
+    
+    UI.MinBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
 game.Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait(2) applyFOV() end)
 State.minimized = true
 UI.Main.Visible = false
