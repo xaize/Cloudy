@@ -1757,6 +1757,8 @@ local originalTransparencies = {}
 
 
 UI.MinBtn.MouseButton1Click:Connect(function()
+     if State.isAnimating then return end 
+     State.isAnimating = true
     State.minimized = true
     State.savedMainPosition = UI.Main.Position
   
@@ -1801,6 +1803,10 @@ UI.MinBtn.MouseButton1Click:Connect(function()
         UI.MinBar.Visible = true
         UI.MinBar.Size = UDim2.new(0, 0, 0, 38 * scaleFactor)
         TweenService:Create(UI.MinBar, Tweens.bounce, {Size = UDim2.new(0, (isMobile and 200 or 240) * scaleFactor, 0, 38 * scaleFactor)}):Play()
+        
+        task.delay(0.5, function()  -- ADD THESE 3 LINES
+            State.isAnimating = false
+        end)
     end)
 end)
 UI.MinBtn.MouseEnter:Connect(function()
@@ -1824,6 +1830,8 @@ if not isMobile then
 end
 
 local function expandUI()
+     if State.isAnimating then return end  -- ADD THIS LINE
+    State.isAnimating = true
     State.minimized = false
     State.savedMinBarPosition = UI.MinBar.Position  -- Save current position before expanding
     
@@ -1946,6 +1954,9 @@ local function expandUI()
         end
         
         TweenService:Create(UI.Main, Tweens.bounce, {Size = UDim2.new(0, 680 * scaleFactor, 0, 420 * scaleFactor)}):Play()
+         task.delay(0.5, function()  -- ADD THESE 3 LINES
+            State.isAnimating = false
+        end)
     end)
 end
 
@@ -2289,17 +2300,8 @@ if isMobile then
         end
     end)
     
-    UI.MinBar.InputEnded:Connect(function(input)
+   UI.MinBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch then
-            -- Release effect
-            TweenService:Create(minStroke, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Thickness = 2 * scaleFactor,
-                Color = Color3.fromRGB(200, 200, 200)
-            }):Play()
-            TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                Rotation = 0
-            }):Play()
-            
             -- If it was a tap (not a drag), expand UI
             local touchDuration = tick() - touchStartTime
             if not isDragging and touchDuration < 0.3 then
