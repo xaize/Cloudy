@@ -2271,6 +2271,7 @@ end)
 -- MinBar setup
 -- MinBar setup
 -- MinBar setup
+-- MinBar setup
 if isMobile then
     local touchStartPos = nil
     local touchStartTime = 0
@@ -2287,11 +2288,7 @@ if isMobile then
             minBarStartPos = UI.MinBar.Position
             pressEffectApplied = true
             
-            -- Visual press effect for mobile (glow + slight rotation)
-            TweenService:Create(minStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Thickness = 4 * scaleFactor,
-                Color = Color3.fromRGB(150, 150, 200)
-            }):Play()
+            -- Visual press effect for mobile (only rotation)
             TweenService:Create(UI.MinBar, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Rotation = 2
             }):Play()
@@ -2304,13 +2301,9 @@ if isMobile then
             if delta > dragThreshold then
                 isDragging = true
                 
-                -- Cancel the press effect if we started dragging
+                -- Cancel the rotation effect if we started dragging
                 if pressEffectApplied then
                     pressEffectApplied = false
-                    TweenService:Create(minStroke, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Thickness = 2 * scaleFactor,
-                        Color = Color3.fromRGB(200, 200, 200)
-                    }):Play()
                     TweenService:Create(UI.MinBar, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                         Rotation = 0
                     }):Play()
@@ -2341,11 +2334,7 @@ if isMobile then
             local wasTap = not isDragging and touchDuration < 0.3
             
             if wasTap then
-                -- Release effect for tap
-                TweenService:Create(minStroke, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Thickness = 2 * scaleFactor,
-                    Color = Color3.fromRGB(200, 200, 200)
-                }):Play()
+                -- Release rotation for tap
                 TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
                     Rotation = 0
                 }):Play()
@@ -2353,8 +2342,6 @@ if isMobile then
                 expandUI()
             elseif isDragging then
                 -- Just reset without animation if it was a drag
-                minStroke.Thickness = 2 * scaleFactor
-                minStroke.Color = Color3.fromRGB(200, 200, 200)
                 UI.MinBar.Rotation = 0
             end
             
