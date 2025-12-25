@@ -1719,7 +1719,10 @@ UI.SettingsBtn.MouseButton1Click:Connect(function()
                 end
             end
         end
-        TweenService:Create(UI.SettingsPopup, Tweens.filterOpen, {Position = UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor), BackgroundTransparency = 0}):Play()
+        TweenService:Create(UI.SettingsPopup, Tweens.filterClose, {
+    Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(0, -10 * scaleFactor, 0, 50 * scaleFactor),
+    BackgroundTransparency = 1
+}):Play()
         for _, child in pairs(UI.SettingsPopup:GetChildren()) do
             if child:IsA("Frame") then
                 TweenService:Create(child, Tweens.filterOpen, {BackgroundTransparency = 0}):Play()
@@ -1728,7 +1731,10 @@ UI.SettingsBtn.MouseButton1Click:Connect(function()
             end
         end
     else
-        TweenService:Create(UI.SettingsPopup, Tweens.filterClose, {Position = UDim2.new(0, -10 * scaleFactor, 0, 50 * scaleFactor), BackgroundTransparency = 1}):Play()
+        TweenService:Create(UI.SettingsPopup, Tweens.filterClose, {
+            Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(0, -10 * scaleFactor, 0, 50 * scaleFactor),
+            BackgroundTransparency = 1
+        }):Play()
         for _, child in pairs(UI.SettingsPopup:GetChildren()) do
             if child:IsA("Frame") then
                 TweenService:Create(child, Tweens.filterClose, {BackgroundTransparency = 1}):Play()
