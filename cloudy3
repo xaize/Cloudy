@@ -2251,16 +2251,42 @@ local isDragging = false
 local dragThreshold = 10  -- pixels to determine if it's a drag or tap
 
 -- Main UI dragging (desktop and mobile)
-header.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = UI.Main.Position
+UI.MinBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        touchStartPos = input.Position
+        touchStartTime = tick()
+        isDragging = false
+        
+        -- Visual press effect for mobile (glow + slight rotation)
+        TweenService:Create(minStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Thickness = 4 * scaleFactor,
+            Color = Color3.fromRGB(150, 150, 200)
+        }):Play()
+        TweenService:Create(UI.MinBar, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Rotation = 2
+        }):Play()
     end
 end)
-header.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+UI.MinBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        -- Reset the visual effects
+        TweenService:Create(minStroke, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Thickness = 2 * scaleFactor,
+            Color = Color3.fromRGB(200, 200, 200)
+        }):Play()
+        TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Rotation = 0
+        }):Play()
+        
+        -- If it was a tap (not a drag), expand UI
+        local touchDuration = tick() - touchStartTime
+        if not isDragging and touchDuration < 0.3 then
+            expandUI()
+        end
+        
         dragging = false
+        isDragging = false
+        touchStartPos = nil
     end
 end)
 
