@@ -2129,7 +2129,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                     
                     if State.settingsOpen then
                         UI.SettingsPopup.Visible = true
-                        UI.SettingsPopup.Position = UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
+                         UI.SettingsPopup.Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
                         UI.SettingsPopup.BackgroundTransparency = 1
                         TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
         Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
