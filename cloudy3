@@ -2272,123 +2272,144 @@ end)
 -- MinBar setup
 -- MinBar setup
 -- MinBar setup
+local dragging, dragStart, startPos = false, nil, nil
+local isDragging = false
+local dragThreshold = 10  -- pixels to determine if it's a drag or tap
+local dragStartTime = 0
+
+-- Main UI dragging (desktop and mobile)
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        isDragging = false
+        dragStart = input.Position
+        startPos = UI.Main.Position
+        dragStartTime = tick()
+    end
+end)
+
+header.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = (input.Position - dragStart).Magnitude
+        if delta > dragThreshold then
+            isDragging = true
+        end
+    end
+end)
+
+header.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+        isDragging = false
+    end
+end)
+
+-- MinBar setup
 if isMobile then
     local touchStartPos = nil
     local touchStartTime = 0
-    local minBarDragStart = nil
-    local minBarStartPos = nil
-    local pressEffectApplied = false
-    local rotationTween = nil  -- ADD THIS: Store the rotation tween so we can cancel it
     
     UI.MinBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch then
             touchStartPos = input.Position
             touchStartTime = tick()
             isDragging = false
-            minBarDragStart = input.Position
-            minBarStartPos = UI.MinBar.Position
-            pressEffectApplied = true
             
-            -- Visual press effect for mobile (only rotation)
-            rotationTween = TweenService:Create(UI.MinBar, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            -- Visual press effect for mobile (glow + slight rotation)
+            TweenService:Create(minStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Thickness = 4 * scaleFactor,
+                Color = Color3.fromRGB(150, 150, 200)
+            }):Play()
+            TweenService:Create(UI.MinBar, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Rotation = 2
-            })
-            rotationTween:Play()
+            }):Play()
         end
     end)
     
     UI.MinBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and minBarDragStart then
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
             local delta = (input.Position - touchStartPos).Magnitude
             if delta > dragThreshold then
                 isDragging = true
-                
-                -- Cancel the rotation effect if we started dragging
-                if pressEffectApplied then
-                    pressEffectApplied = false
-                    
-                    -- IMPORTANT: Cancel the ongoing rotation tween first
-                    if rotationTween then
-                        rotationTween:Cancel()
-                        rotationTween = nil
-                    end
-                    
-                    -- Then immediately reset rotation
-                    UI.MinBar.Rotation = 0
-                end
-                
                 if not dragging then
                     dragging = true
-                    dragStart = minBarDragStart
-                    startPos = minBarStartPos
+                    dragStart = touchStartPos
+                    startPos = UI.MinBar.Position
                 end
-                
-                -- Move the MinBar while dragging
-                local moveDelta = input.Position - minBarDragStart
-                UI.MinBar.Position = UDim2.new(
-                    minBarStartPos.X.Scale, 
-                    minBarStartPos.X.Offset + moveDelta.X, 
-                    minBarStartPos.Y.Scale, 
-                    minBarStartPos.Y.Offset + moveDelta.Y
-                )
             end
         end
     end)
     
     UI.MinBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch then
-            -- Only apply release effect if it was a tap (not a drag)
-            local touchDuration = tick() - touchStartTime
-            local wasTap = not isDragging and touchDuration < 0.3
+            -- Release effect
+            TweenService:Create(minStroke, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Thickness = 2 * scaleFactor,
+                Color = Color3.fromRGB(200, 200, 200)
+            }):Play()
+            TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Rotation = 0
+            }):Play()
             
-            if wasTap then
-                -- Cancel any ongoing rotation tween
-                if rotationTween then
-                    rotationTween:Cancel()
-                    rotationTween = nil
-                end
-                
-                -- Release rotation for tap
-                rotationTween = TweenService:Create(UI.MinBar, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Rotation = 0
-                })
-                rotationTween:Play()
-                
+            -- If it was a tap (not a drag), expand UI
+            local touchDuration = tick() - touchStartTime
+            if not isDragging and touchDuration < 0.3 then
                 expandUI()
-            elseif isDragging then
-                -- Cancel any ongoing rotation tween
-                if rotationTween then
-                    rotationTween:Cancel()
-                    rotationTween = nil
-                end
-                -- Just reset without animation if it was a drag
-                UI.MinBar.Rotation = 0
             end
             
             dragging = false
             isDragging = false
             touchStartPos = nil
-            minBarDragStart = nil
-            minBarStartPos = nil
-            pressEffectApplied = false
         end
     end)
 else
-    -- Desktop: entire MinBar is draggable
+    -- Desktop: entire MinBar is draggable but with click detection
+    local desktopDragStart = nil
+    local desktopStartTime = 0
+    
     UI.MinBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            dragStart = input.Position
+            isDragging = false
+            desktopDragStart = input.Position
             startPos = UI.MinBar.Position
+            desktopStartTime = tick()
+        end
+    end)
+    
+    UI.MinBar.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = (input.Position - desktopDragStart).Magnitude
+            if delta > dragThreshold then
+                isDragging = true
+            end
         end
     end)
     
     UI.MinBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local clickDuration = tick() - desktopStartTime
+            local wasClick = not isDragging and clickDuration < 0.3
+            
             dragging = false
+            isDragging = false
+            
+            -- Only expand if it was a click, not a drag
+            if wasClick then
+                expandUI()
+            end
         end
     end)
 end
+
+-- Universal drag movement - only move if actually dragging
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        local target = State.minimized and UI.MinBar or UI.Main
+        target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
 game.Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait(2) applyFOV() end)
 State.minimized = true
 UI.Main.Visible = false
