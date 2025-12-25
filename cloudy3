@@ -57,7 +57,7 @@ local State = {
      lastESPUpdate = 0,
     ui_keybind = "T",
     keybindDebounce = false,
-    keybindCooldown = 0.3,
+    keybindCooldown = 0.5,
     isAnimating = false,
 
     lastJoinNotifyTime = 0
@@ -1964,6 +1964,8 @@ end
 
 if not isMobile then
     UI.ExpandBtn.MouseButton1Click:Connect(function()
+        if State.isAnimating then return end  -- Prevent spam
+        
         TweenService:Create(UI.ExpandBtn, TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 30 * scaleFactor, 0, 28 * scaleFactor),
             BackgroundColor3 = Color3.fromRGB(70, 70, 95)
@@ -2139,9 +2141,9 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                         UI.SettingsPopup.Visible = true
                          UI.SettingsPopup.Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
                         UI.SettingsPopup.BackgroundTransparency = 1
-                        TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
-        Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
-        BackgroundTransparency = 1
+                       TweenService:Create(UI.SettingsPopup, Tweens.bounce, {
+        Position = isMobile and UDim2.new(0, 430 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
+        BackgroundTransparency = 0
     }):Play()
                         task.delay(0.1, function()
                             for _, child in pairs(UI.SettingsPopup:GetDescendants()) do
@@ -2267,15 +2269,20 @@ header.InputEnded:Connect(function(input)
 end)
 
 -- MinBar setup
+-- MinBar setup
 if isMobile then
     local touchStartPos = nil
     local touchStartTime = 0
+    local minBarDragStart = nil
+    local minBarStartPos = nil
     
     UI.MinBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch then
             touchStartPos = input.Position
             touchStartTime = tick()
             isDragging = false
+            minBarDragStart = input.Position
+            minBarStartPos = UI.MinBar.Position
             
             -- Visual press effect for mobile (glow + slight rotation)
             TweenService:Create(minStroke, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -2289,15 +2296,24 @@ if isMobile then
     end)
     
     UI.MinBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos then
+        if input.UserInputType == Enum.UserInputType.Touch and touchStartPos and minBarDragStart then
             local delta = (input.Position - touchStartPos).Magnitude
             if delta > dragThreshold then
                 isDragging = true
                 if not dragging then
                     dragging = true
-                    dragStart = touchStartPos
-                    startPos = UI.MinBar.Position
+                    dragStart = minBarDragStart
+                    startPos = minBarStartPos
                 end
+                
+                -- Move the MinBar while dragging
+                local moveDelta = input.Position - minBarDragStart
+                UI.MinBar.Position = UDim2.new(
+                    minBarStartPos.X.Scale, 
+                    minBarStartPos.X.Offset + moveDelta.X, 
+                    minBarStartPos.Y.Scale, 
+                    minBarStartPos.Y.Offset + moveDelta.Y
+                )
             end
         end
     end)
@@ -2322,6 +2338,8 @@ if isMobile then
             dragging = false
             isDragging = false
             touchStartPos = nil
+            minBarDragStart = nil
+            minBarStartPos = nil
         end
     end)
 else
@@ -2340,8 +2358,6 @@ else
         end
     end)
 end
-
-
 
 -- Universal drag movement
 UserInputService.InputChanged:Connect(function(input)
