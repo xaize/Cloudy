@@ -842,7 +842,7 @@ Instance.new("UICorner", UI.ExpandBtn).CornerRadius = UDim.new(0, 6 * scaleFacto
 end
 UI.SettingsPopup = Instance.new("Frame")
 UI.SettingsPopup.Size = UDim2.new(0, 240 * scaleFactor, 0, 280 * scaleFactor)
-UI.SettingsPopup.Position = UDim2.new(1, 10 * scaleFactor, 0, 50 * scaleFactor)
+UI.SettingsPopup.Position = isMobile and UDim2.new(0, 430 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(1, 10 * scaleFactor, 0, 50 * scaleFactor)
 UI.SettingsPopup.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
 UI.SettingsPopup.BorderSizePixel = 0
 UI.SettingsPopup.Visible = false
@@ -1923,12 +1923,12 @@ local function expandUI()
         
         if State.settingsOpen then
             UI.SettingsPopup.Visible = true
-            UI.SettingsPopup.Position = UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
+            UI.SettingsPopup.Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
             UI.SettingsPopup.BackgroundTransparency = 1
-            TweenService:Create(UI.SettingsPopup, Tweens.bounce, {
-                Position = UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
-                BackgroundTransparency = 0
-            }):Play()
+             TweenService:Create(UI.SettingsPopup, Tweens.bounce, {
+        Position = isMobile and UDim2.new(0, 430 * scaleFactor, 0, 50 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
+        BackgroundTransparency = 0
+    }):Play()
             task.delay(0.1, function()
                 for _, child in pairs(UI.SettingsPopup:GetDescendants()) do
                     if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
@@ -2131,10 +2131,10 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
                         UI.SettingsPopup.Visible = true
                         UI.SettingsPopup.Position = UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor)
                         UI.SettingsPopup.BackgroundTransparency = 1
-                        TweenService:Create(UI.SettingsPopup, Tweens.bounce, {
-                            Position = UDim2.new(0, -250 * scaleFactor, 0, 50 * scaleFactor),
-                            BackgroundTransparency = 0
-                        }):Play()
+                        TweenService:Create(UI.SettingsPopup, Tweens.smooth, {
+        Position = isMobile and UDim2.new(0, 670 * scaleFactor, 0, 80 * scaleFactor) or UDim2.new(0, -250 * scaleFactor, 0, 80 * scaleFactor),
+        BackgroundTransparency = 1
+    }):Play()
                         task.delay(0.1, function()
                             for _, child in pairs(UI.SettingsPopup:GetDescendants()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
