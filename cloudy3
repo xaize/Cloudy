@@ -58,6 +58,8 @@ local State = {
     ui_keybind = "T",
     keybindDebounce = false,
     keybindCooldown = 0.3,
+    isAnimating = false,
+
     lastJoinNotifyTime = 0
 }
 local UI = {
@@ -893,7 +895,7 @@ task.spawn(function()
 end)
 UI.DefaultBtn = Instance.new("TextButton")
 UI.DefaultBtn.Size = UDim2.new(0, 70 * scaleFactor, 0, 24 * scaleFactor)
-UI.DefaultBtn.Position = UDim2.new(1, -102 * scaleFactor, 0.5, -12 * scaleFactor)
+UI.DefaultBtn.Position = isMobile and UDim2.new(1, -82 * scaleFactor, 0.5, -12 * scaleFactor) or UDim2.new(1, -102 * scaleFactor, 0.5, -12 * scaleFactor)
 UI.DefaultBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
 UI.DefaultBtn.BorderSizePixel = 0
 UI.DefaultBtn.Text = "DEFAULT"
@@ -903,31 +905,33 @@ UI.DefaultBtn.TextSize = 10 * scaleFactor
 UI.DefaultBtn.AutoButtonColor = false
 UI.DefaultBtn.Parent = settingsHeader
 Instance.new("UICorner", UI.DefaultBtn).CornerRadius = UDim.new(0, 5 * scaleFactor)
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 24 * scaleFactor, 0, 24 * scaleFactor)
-closeBtn.Position = UDim2.new(1, -30 * scaleFactor, 0.5, -12 * scaleFactor)
-closeBtn.BackgroundColor3 = Color3.fromRGB(55, 40, 40)
-closeBtn.BorderSizePixel = 0
-closeBtn.Text = "×"
-closeBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 16 * scaleFactor
-closeBtn.AutoButtonColor = false
-closeBtn.Parent = settingsHeader
-Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 5 * scaleFactor)
-closeBtn.MouseButton1Click:Connect(function()
-    State.settingsOpen = false
-    TweenService:Create(UI.SettingsPopup, Tweens.filterClose, {Position = UDim2.new(0, -10 * scaleFactor, 0, 50 * scaleFactor)}):Play()
-    task.delay(0.35, function()
-        if not State.settingsOpen then UI.SettingsPopup.Visible = false end
+if not isMobile then
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0, 24 * scaleFactor, 0, 24 * scaleFactor)
+    closeBtn.Position = UDim2.new(1, -30 * scaleFactor, 0.5, -12 * scaleFactor)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(55, 40, 40)
+    closeBtn.BorderSizePixel = 0
+    closeBtn.Text = "×"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 16 * scaleFactor
+    closeBtn.AutoButtonColor = false
+    closeBtn.Parent = settingsHeader
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 5 * scaleFactor)
+    closeBtn.MouseButton1Click:Connect(function()
+        State.settingsOpen = false
+        TweenService:Create(UI.SettingsPopup, Tweens.filterClose, {Position = UDim2.new(0, -10 * scaleFactor, 0, 50 * scaleFactor)}):Play()
+        task.delay(0.35, function()
+            if not State.settingsOpen then UI.SettingsPopup.Visible = false end
+        end)
     end)
-end)
-closeBtn.MouseEnter:Connect(function()
-    TweenService:Create(closeBtn, Tweens.fast, {BackgroundColor3 = Color3.fromRGB(75, 50, 50)}):Play()
-end)
-closeBtn.MouseLeave:Connect(function()
-    TweenService:Create(closeBtn, Tweens.fast, {BackgroundColor3 = Color3.fromRGB(55, 40, 40)}):Play()
-end)
+    closeBtn.MouseEnter:Connect(function()
+        TweenService:Create(closeBtn, Tweens.fast, {BackgroundColor3 = Color3.fromRGB(75, 50, 50)}):Play()
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        TweenService:Create(closeBtn, Tweens.fast, {BackgroundColor3 = Color3.fromRGB(55, 40, 40)}):Play()
+    end)
+end
 UI.DefaultBtn.MouseButton1Click:Connect(function()
     State.brainrot_notify_enabled = false
     State.brainrot_esp_enabled = false
@@ -1749,6 +1753,7 @@ local originalTransparencies = {}
 
 
 UI.MinBtn.MouseButton1Click:Connect(function()
+    if State.isAnimating then return end
     State.minimized = true
     State.savedMainPosition = UI.Main.Position
   
@@ -1793,6 +1798,9 @@ UI.MinBtn.MouseButton1Click:Connect(function()
         UI.MinBar.Visible = true
         UI.MinBar.Size = UDim2.new(0, 0, 0, 38 * scaleFactor)
         TweenService:Create(UI.MinBar, Tweens.bounce, {Size = UDim2.new(0, (isMobile and 200 or 240) * scaleFactor, 0, 38 * scaleFactor)}):Play()
+        task.delay(0.5, function()  -- ADD THESE 3 LINES
+            State.isAnimating = false
+        end)
     end)
 end)
 UI.MinBtn.MouseEnter:Connect(function()
@@ -1816,6 +1824,8 @@ if not isMobile then
 end
 
 local function expandUI()
+    if State.isAnimating then return end  -- ADD THIS LINE
+    State.isAnimating = true  -- ADD T
     State.minimized = false
     State.savedMinBarPosition = UI.MinBar.Position  -- Save current position before expanding
     
@@ -1938,6 +1948,9 @@ local function expandUI()
         end
         
         TweenService:Create(UI.Main, Tweens.bounce, {Size = UDim2.new(0, 680 * scaleFactor, 0, 420 * scaleFactor)}):Play()
+         task.delay(0.5, function()  -- ADD THESE 3 LINES
+            State.isAnimating = false
+        end)
     end)
 end
 
